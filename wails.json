@@ -1,0 +1,11 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "parse",
+  "outputfilename": "parse",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "author": {
+    "name": "OwnSecurityGuard",
+    "email": "1847583786@qq.com"
+  }
+}
