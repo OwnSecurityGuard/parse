@@ -1,52 +1,34 @@
-export namespace main {
+export namespace biz {
 	
-	export class Tmp {
-	    Timestamp: number;
-	    Uri: string;
-	    Msg: string;
+	export class Column {
+	    prop: string;
+	    label: string;
+	    extractor_path: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new Tmp(source);
+	        return new Column(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.Timestamp = source["Timestamp"];
-	        this.Uri = source["Uri"];
-	        this.Msg = source["Msg"];
+	        this.prop = source["prop"];
+	        this.label = source["label"];
+	        this.extractor_path = source["extractor_path"];
 	    }
 	}
-	export class Playback {
-	    Req: Tmp[];
-	    Resp: Tmp[];
+	export class Msg {
+	    is_client: boolean;
+	    key_values: Record<string, string[]>;
 	
 	    static createFrom(source: any = {}) {
-	        return new Playback(source);
+	        return new Msg(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.Req = this.convertValues(source["Req"], Tmp);
-	        this.Resp = this.convertValues(source["Resp"], Tmp);
+	        this.is_client = source["is_client"];
+	        this.key_values = source["key_values"];
 	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice && a.map) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
 	}
 
 }

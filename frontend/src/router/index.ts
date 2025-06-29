@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
-import PlaybackRecorder from '../views/PlaybackRecorder.vue';
+import Monitor from '../views/Monitor.vue';
 import ConfigPage from '../views/ConfigPage.vue';
 
 const routes: RouteRecordRaw[] = [
@@ -12,7 +12,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/recorder',
     name: 'Recorder',
-    component: PlaybackRecorder,
+    component: Monitor,
   },
   {
     path: '/config',
