@@ -1,534 +1,537 @@
 <template>
-  <el-container class="config-page">
-    <!-- 左侧区域 -->
-    <el-aside width="220px" class="sidebar">
-      <div class="sidebar-header">
-        <div class="tech-circle"></div>
-        <h2 class="sidebar-title">请求类型</h2>
-        <div class="tech-circle"></div>
-      </div>
-      
-      <!-- 请求名称选择下拉框 -->
-      <div class="request-selector">
-        <el-select
-          v-model="selectedReqName"
-          placeholder="选择请求名称"
-          @change="handleReqNameChange"
-          class="req-select"
-        >
-          <el-option
-            v-for="name in uniqueRequestNames"
-            :key="name"
-            :label="name"
-            :value="name"
-          />
-        </el-select>
-      </div>
-
-      <!-- 请求实例列表 -->
-      <div v-if="selectedReqName" class="request-instance-list">
-        <div class="list-header">{{ selectedReqName }} 实例</div>
-        <div 
-          v-for="req in filteredRequestsByName"
-          :key="`${req.name}|${req.time}`"
-          :class="['request-instance-item', { 'is-active': selectedReqKey === `${req.name}|${req.time}` }]"
-          @click="handleReqInstanceClick(req)"
-        >
-          <span class="instance-time">@ {{ req.time }}</span>
+  <div class="config-manager-tool">
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 顶部工具栏 -->
+      <div class="toolbar">
+        <div class="page-title">
+          <h1>配置管理</h1>
+          <p class="subtitle">配置文件</p>
         </div>
-        <div v-if="filteredRequestsByName.length === 0" class="empty-instances">
-          <el-empty description="无请求实例" :image-size="50" />
-        </div>
-      </div>
-      
-      <div class="tech-decoration">
-        <div class="tech-line"></div>
-        <div class="tech-dot"></div>
-        <div class="tech-line"></div>
-      </div>
-    </el-aside>
-
-    <!-- 右侧主内容 -->
-    <el-main class="main-panel">
-      <div v-if="selectedReq" class="config-content">
-        <div class="section-header">
-          <h2 class="section-title">
-            <span class="tech-badge">配置</span>
-            {{ selectedReq.name }} @ {{ selectedReq.time }}
-          </h2>
-          <div class="tech-indicator"></div>
-        </div>
-
-        <!-- 响应绑定选择 -->
-        <el-card class="config-card tech-card">
-          <el-form label-width="120px">
-            <el-form-item label="绑定响应包">
-              <el-select
-                v-model="selectedS2CKey"
-                placeholder="选择一个响应包"
-                @change="handleS2CChange"
-                class="response-select"
-              >
-                <el-option
-                  v-for="(msg, idx) in filteredS2C"
-                  :key="idx"
-                  :label="`${msg.name} @ ${msg.time}`"
-                  :value="`${msg.name}|${msg.time}`"
-                />
-              </el-select>
-            </el-form-item>
-          </el-form>
-        </el-card>
-
-        <!-- 参数配置列表 -->
-        <el-card class="config-card param-config-card tech-card">
-          <template #header>
-            <div class="card-header">
-              <div class="header-title">
-                <div class="tech-icon"></div>
-                <span>参数配置</span>
-              </div>
-              <el-button type="primary" @click="addParam" size="small" class="tech-button">
-                <el-icon><Plus /></el-icon>
-                <span>添加</span>
-              </el-button>
-            </div>
-          </template>
-
-          <div class="param-list">
-            <div
-              v-for="(param, index) in configMap[selectedReqKey]"
-              :key="index"
-              class="param-row"
-            >
-              <el-row :gutter="16" align="middle">
-                <el-col :span="9">
-                  <el-select 
-                    v-model="param.srcPath" 
-                    placeholder="选择来源字段" 
-                    filterable
-                    class="param-select"
-                  >
-                    <el-option
-                      v-for="key in availableS2CKeys"
-                      :key="key"
-                      :label="key"
-                      :value="key"
-                    />
-                  </el-select>
-                </el-col>
-                <el-col :span="9">
-                  <el-input 
-                    v-model="param.tarPath" 
-                    placeholder="目标路径" 
-                    class="param-input"
-                  />
-                </el-col>
-                <el-col :span="2">
-                  <el-button
-                    type="danger"
-                    circle
-                    @click="removeParam(index)"
-                    class="delete-btn"
-                  >
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
-                </el-col>
-              </el-row>
-            </div>
-            <div v-if="configMap[selectedReqKey]?.length === 0" class="empty-params">
-              <el-empty description="暂无参数配置" />
-            </div>
-          </div>
-        </el-card>
-
-        <div class="save-section">
-          <el-button type="success" size="large" @click="saveConfig" class="save-btn tech-button">
-            <el-icon><Check /></el-icon>
-            <span>保存配置</span>
+        <div class="toolbar-actions">
+          <el-button type="primary" @click="refreshConfig" class="refresh-btn">
+            <i class="el-icon-refresh"></i>
+          </el-button>
+          <el-button type="success" @click="exportConfig" class="export-btn">
+            <i class="el-icon-download"></i>
           </el-button>
         </div>
       </div>
-      
-      <div v-else class="empty-selection">
-        <div class="tech-empty">
-          <div class="tech-circle-large"></div>
-          <el-empty description="请从左侧选择一个请求类型" />
-          <div class="tech-line-horizontal"></div>
+
+      <!-- 配置选择区 -->
+      <div class="selection-panel">
+        <div class="selection-row">
+          <div class="selection-item">
+            <label>配置文件</label>
+            <el-select
+              v-model="ctxConfigStore.selectedPath"
+              placeholder="选择配置文件"
+              size="small"
+              class="custom-select"
+            >
+              <el-option
+                v-for="item in ctxConfigStore.filaPaths"
+                :key="item"
+                :label="item"
+                :value="item"
+              />
+            </el-select>
+          </div>
+
+          <div class="selection-item">
+            <label>请求类型</label>
+            <el-select
+              v-model="ctxConfigStore.selectedReq"
+              placeholder="选择请求类型"
+              size="small"
+              class="custom-select"
+            >
+              <el-option
+                v-for="item in ctxConfigStore.c2s"
+                :key="item"
+                :label="item"
+                :value="item"
+              />
+            </el-select>
+          </div>
+
+          <div class="action-buttons">
+            <el-button type="primary" @click="openRuleDialog" size="small">添加规则</el-button>
+            <el-button type="success" @click="submitConfig" size="small">提交配置</el-button>
+          </div>
+        </div>
+
+        <div class="key-path-container">
+          <label>唯一性字段路径</label>
+          <el-input
+            v-if="ctxConfigStore.configData[ctxConfigStore.selectedPath]"
+            v-model="ctxConfigStore.configData[ctxConfigStore.selectedPath].keyPath"
+            placeholder="如 data.user.id"
+            size="small"
+            class="custom-input"
+          />
         </div>
       </div>
-    </el-main>
-  </el-container>
+
+      <!-- 规则列表区 -->
+      <div class="rules-container">
+        <div
+          v-for="(rule, index) in ctxConfigStore.configData[ctxConfigStore.selectedPath]?.keyRules[ctxConfigStore.selectedReq] || []"
+          :key="index"
+          class="rule-card"
+        >
+          <div class="rule-header">
+            <h3>规则 #{{ index + 1 }}</h3>
+            <el-button
+              circle
+              size="small"
+              type="danger"
+              @click="removeRule(index)"
+              class="delete-btn"
+            >
+              <i class="el-icon-delete"></i>
+            </el-button>
+          </div>
+
+          <div class="rule-body">
+            <el-table :data="[rule]" border size="small" class="rule-table">
+              <el-table-column label="源路径" width="200">
+                <template #default="scope">
+                  <el-input
+                    v-model="scope.row.SrcPath"
+                    placeholder="如 data.items.id"
+                    size="small"
+                    clearable
+                  />
+                </template>
+              </el-table-column>
+              <el-table-column label="目标键名" width="200">
+                <template #default="scope">
+                  <el-input
+                    v-model="scope.row.DstKey"
+                    placeholder="如 itemId"
+                    size="small"
+                    clearable
+                  />
+                </template>
+              </el-table-column>
+              <el-table-column label="目标路径" width="200">
+                <template #default="scope">
+                  <el-input
+                    v-model="scope.row.DstPath"
+                    placeholder="如 payload.item_id"
+                    size="small"
+                    clearable
+                  />
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <div class="filters-section">
+              <div class="filters-header">
+                <span>筛选条件</span>
+                <el-button
+                  type="primary"
+                  size="small"
+                  @click="ctxConfigStore.AddFilter(index)"
+                  class="add-filter-btn"
+                >
+                  + 添加筛选
+                </el-button>
+              </div>
+              <el-table
+                :data="rule.Fs || []"
+                border
+                size="small"
+                class="filters-table"
+              >
+                <el-table-column label="#" type="index" width="40" />
+                <el-table-column label="路径" width="160">
+                  <template #default="scope">
+                    <el-input
+                      v-model="scope.row.Path"
+                      placeholder="data.items.0"
+                      size="small"
+                      clearable
+                    />
+                  </template>
+                </el-table-column>
+                <el-table-column label="字段名" width="140">
+                  <template #default="scope">
+                    <el-input
+                      v-model="scope.row.ExpectKey"
+                      placeholder="字段名"
+                      size="small"
+                      clearable
+                    />
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作符" width="120">
+                  <template #default="scope">
+                    <el-select
+                      v-model="scope.row.Op"
+                      size="small"
+                      placeholder="操作符"
+                      class="w-full"
+                    >
+                      <el-option label="=" value="=" />
+                      <el-option label="!=" value="!=" />
+                      <el-option label="包含" value="contains" />
+                    </el-select>
+                  </template>
+                </el-table-column>
+                <el-table-column label="期望值">
+                  <template #default="scope">
+                    <el-input
+                      v-model="scope.row.ExpectVal"
+                      placeholder="期望值"
+                      size="small"
+                      clearable
+                    />
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="60">
+                  <template #default="scope">
+                    <el-button
+                      circle
+                      size="small"
+                      type="danger"
+                      @click="removeFilter(index, scope.$index)"
+                    >
+                      <i class="el-icon-delete"></i>
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 空状态提示 -->
+        <div v-if="!ctxConfigStore.configData[ctxConfigStore.selectedPath]?.keyRules[ctxConfigStore.selectedReq]?.length" class="empty-state">
+          <p class="empty-text">暂无规则，点击上方按钮添加规则</p>
+        </div>
+      </div>
+
+      <!-- 添加规则弹窗 -->
+      <el-dialog
+        v-model="ruleDialogVisible"
+        title="添加新规则"
+        width="520px"
+        class="custom-dialog"
+        destroy-on-close
+      >
+        <div class="dialog-body">
+          <el-table :data="[newRule]" border size="small" class="dialog-table">
+            <el-table-column label="源路径" width="200">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.SrcPath"
+                  placeholder="如 data.items.id"
+                  clearable
+                />
+              </template>
+            </el-table-column>
+            <el-table-column label="目标键名" width="200">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.DstKey"
+                  placeholder="如 itemId"
+                  clearable
+                />
+              </template>
+            </el-table-column>
+            <el-table-column label="目标路径" width="200">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.DstPath"
+                  placeholder="如 payload.item_id"
+                  clearable
+                />
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="ruleDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="addNewRule">添加</el-button>
+          </div>
+        </template>
+      </el-dialog>
+    </div>
+  </div>
 </template>
 
-<script setup lang="ts">
-import { reactive, ref, computed, onMounted } from 'vue'
-import { usePlaybackStore } from '../store/playback'
-import { Plus, Delete, Check } from '@element-plus/icons-vue'
-import type { Req, Param} from '../types/playback'
-  
- 
- 
+<script lang="ts" setup>
+import { ref, onMounted } from 'vue';
+import { useCtxConfigStore } from '../store/ctxConfig';
+import type { monitor } from '../../wailsjs/go/models';
 
-function GetKey(s2cName: string): string[] {
-  if (s2cName === 'LoginResp') return ['data.user.id', 'data.token']
-  if (s2cName === 'MoveResp') return ['pos.x', 'pos.y']
-  return ['data']
+const ctxConfigStore = useCtxConfigStore();
+const ruleDialogVisible = ref(false);
+const newRule = ref ({ SrcPath: '', DstKey: '', DstPath: '', Fs: [] });
+
+function openRuleDialog() {
+  ruleDialogVisible.value = true;
+  newRule.value = { SrcPath: '', DstKey: '', DstPath: '', Fs: [] };
 }
 
-const playback = usePlaybackStore()
-onMounted(() => playback.loadMockData())
-
-// 唯一的请求名称列表
-const uniqueRequestNames = computed<string[]>(() => {
-  const names = new Set<string>()
-  playback.c2s.forEach(req => names.add(req.name))
-  return Array.from(names)
-})
-
-// 选中的请求名称
-const selectedReqName = ref('')
-
-// 根据选中的名称过滤出的请求实例
-const filteredRequestsByName = computed<Req[]>(() => {
-  if (!selectedReqName.value) return []
-  return playback.c2s.filter(req => req.name === selectedReqName.value)
-})
-
-// 选中的请求键值（格式：name|time）
-const selectedReqKey = ref('')
-
-// 当前选中的请求对象
-const selectedReq = computed(() => {
-  if (!selectedReqKey.value) return null
-  
-  const [name, timeStr] = selectedReqKey.value.split('|')
-  const time = parseFloat(timeStr)
-  
-  return playback.c2s.find(req => req.name === name && req.time === time) || null
-})
-
-const configMap = reactive<Record<string, Param[]>>({})
-const selectedS2CKey = ref('')
-const currentS2C = ref<{ name: string; data: string } | null>(null)
-const currentS2CName = ref('')
-
-// 处理请求名称选择变化
-function handleReqNameChange(val: string) {
-  selectedReqName.value = val
-  selectedReqKey.value = '' // 清空当前选中的具体请求
-  currentS2C.value = null // 清空响应预览
+function addNewRule() {
+  if (!ctxConfigStore.configData[ctxConfigStore.selectedPath]) {
+    ctxConfigStore.configData[ctxConfigStore.selectedPath] = {
+      keyPath: '',
+      keyRules: {}
+    };
+  }
+  const rules = ctxConfigStore.configData[ctxConfigStore.selectedPath].keyRules;
+  if (!rules[ctxConfigStore.selectedReq]) {
+    rules[ctxConfigStore.selectedReq] = [];
+  }
+  rules[ctxConfigStore.selectedReq].push(JSON.parse(JSON.stringify(newRule.value)));
+  ruleDialogVisible.value = false;
 }
 
-// 处理请求实例点击
-function handleReqInstanceClick(req: Req) {
-  const key = `${req.name}|${req.time}`
-  selectedReqKey.value = key
-  if (!configMap[key]) {
-    configMap[key] = []
+function submitConfig() {
+  ctxConfigStore.Upload();
+}
+
+function refreshConfig() {
+  ctxConfigStore.load();
+}
+
+function exportConfig() {
+  console.log('Exporting configuration...');
+}
+
+function removeRule(index: number) {
+  if (
+    ctxConfigStore.configData[ctxConfigStore.selectedPath] &&
+    ctxConfigStore.configData[ctxConfigStore.selectedPath].keyRules &&
+    ctxConfigStore.configData[ctxConfigStore.selectedPath].keyRules[ctxConfigStore.selectedReq]
+  ) {
+    ctxConfigStore.configData[ctxConfigStore.selectedPath].keyRules[ctxConfigStore.selectedReq].splice(index, 1);
   }
 }
 
-const filteredS2C = computed(() => playback.s2c)
-
-function handleS2CChange(val: string) {
-  const [name, timeStr] = val.split('|')
-  const time = parseFloat(timeStr)
-  const msg = playback.s2c.find(m => m.name === name && m.time === time)
-  if (msg) {
-    currentS2C.value = msg
-    currentS2CName.value = msg.name
+function removeFilter(ruleIndex: number, filterIndex: number) {
+  if (
+    ctxConfigStore.configData[ctxConfigStore.selectedPath] &&
+    ctxConfigStore.configData[ctxConfigStore.selectedPath].keyRules &&
+    ctxConfigStore.configData[ctxConfigStore.selectedPath].keyRules[ctxConfigStore.selectedReq]
+  ) {
+    ctxConfigStore.configData[ctxConfigStore.selectedPath].keyRules[ctxConfigStore.selectedReq][ruleIndex].Fs.splice(filterIndex, 1);
   }
 }
 
-const availableS2CKeys = computed(() => GetKey(currentS2CName.value))
-
-function addParam() {
-  if (!selectedReqKey.value) return
-  configMap[selectedReqKey.value].push({
-    index: configMap[selectedReqKey.value].length,
-    srcPath: '',
-    tarPath: '',
-  })
-}
-
-function removeParam(index: number) {
-  if (!selectedReqKey.value) return
-  configMap[selectedReqKey.value].splice(index, 1)
-}
-
-function saveConfig() {
-  console.log('保存配置：', selectedReqKey.value, configMap[selectedReqKey.value])
-}
-
-// function formatJson(str: string): string {
-//   try {
-//     return JSON.stringify(JSON.parse(str), null, 2)
-//   } catch {
-//     return str
-//   }
-// }
+onMounted(() => {
+  ctxConfigStore.load();
+});
 </script>
 
 <style scoped>
-.config-page {
-  height: 100vh;
-  background-color: var(--bg-dark);
+:root {
+  --primary-color: #409eff;
+  --success-color: #67c23a;
+  --danger-color: #f56c6c;
+  --light-bg: #f5f7fa;
+  --card-bg: #ffffff;
+  --text-color: #333333;
+  --text-light: #606266;
+  --border-color: #e4e7ed;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --border-radius: 4px;
 }
 
-/* 侧边栏样式 */
-.sidebar {
-  background-color: var(--bg-primary);
-  border-right: 1px solid var(--border-color);
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
+.config-manager-tool {
+  min-height: 100vh;
+  background-color: var(--light-bg);
 }
 
-.sidebar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
+.main-content {
+  padding: var(--spacing-lg);
+  max-width: 1200px;
+  margin: 0 auto;
   width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
 }
 
-.sidebar-header {
+/* 顶部工具栏样式 */
+.toolbar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
-.tech-circle {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--primary-color);
-  box-shadow: 0 0 10px var(--primary-color);
+.page-title h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-color);
 }
 
-.sidebar-title {
+.page-title .subtitle {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* 配置选择区样式 */
+.selection-panel {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.selection-row {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.selection-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
   flex: 1;
-  font-size: 1.2rem;
-  color: var(--text-primary);
-  text-align: center;
-  margin: 0;
 }
 
-/* 主面板样式 */
-.main-panel {
-  background-color: var(--bg-secondary);
-  padding: 20px;
-}
-
-/* 卡片样式 */
-.tech-card {
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
-}
-
-.tech-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 15px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.header-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-primary);
-}
-
-.tech-icon {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--primary-color);
-  box-shadow: 0 0 8px var(--primary-color);
-}
-
-/* 按钮样式 */
-.tech-button {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-  border: none;
-  padding: 8px 16px;
-  border-radius: var(--border-radius);
-  color: var(--text-primary);
-  transition: all 0.3s ease;
-}
-
-.tech-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 15px rgba(79, 70, 229, 0.4);
-}
-
-/* JSON预览区域样式 */
-.json-container {
-  background-color: var(--bg-dark);
-  border-radius: var(--border-radius);
-  padding: 20px;
-  position: relative;
-}
-
-.json-preview {
-  color: var(--text-primary);
-  font-family: 'Fira Code', monospace;
-  margin: 0;
-  white-space: pre-wrap;
-}
-
-/* 装饰元素 */
-.tech-decoration-corner {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border: 1px solid var(--primary-color);
-}
-
-.top-left {
-  top: 10px;
-  left: 10px;
-  border-right: none;
-  border-bottom: none;
-}
-
-.top-right {
-  top: 10px;
-  right: 10px;
-  border-left: none;
-  border-bottom: none;
-}
-
-.bottom-left {
-  bottom: 10px;
-  left: 10px;
-  border-right: none;
-  border-top: none;
-}
-
-.bottom-right {
-  bottom: 10px;
-  right: 10px;
-  border-left: none;
-  border-top: none;
-}
-
-/* 空状态样式 */
-.empty-selection {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  color: var(--text-secondary);
-}
-
-.tech-empty {
-  text-align: center;
-  position: relative;
-}
-
-.tech-circle-large {
-  width: 40px;
-  height: 40px;
-  border: 2px solid var(--primary-color);
-  border-radius: 50%;
-  margin: 0 auto 20px;
-  position: relative;
-}
-
-.tech-circle-large::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 8px;
-  height: 8px;
-  background-color: var(--primary-color);
-  border-radius: 50%;
-  box-shadow: 0 0 15px var(--primary-color);
-}
-
-.tech-line-horizontal {
-  width: 100px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-  margin: 20px auto 0;
-}
-
-.request-instance-list {
-  margin-top: 20px;
-  max-height: calc(100vh - 200px); /* 调整高度以适应侧边栏 */
-  overflow-y: auto;
-  padding-right: 5px;
-}
-
-.list-header {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin-bottom: 10px;
-  padding-left: 5px;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 5px;
-}
-
-.request-instance-item {
-  padding: 8px 10px;
-  cursor: pointer;
-  color: var(--text-primary);
-  border-radius: var(--border-radius);
-  transition: background-color 0.2s ease, color 0.2s ease;
-  margin-bottom: 5px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.request-instance-item:hover {
-  background-color: rgba(var(--primary-color-rgb), 0.2);
-  color: var(--primary-light);
-}
-
-.request-instance-item.is-active {
-  background-color: var(--primary-color);
-  color: var(--bg-primary);
-  font-weight: bold;
-}
-
-.instance-time {
-  font-size: 0.85rem;
+.selection-item label {
+  font-size: 14px;
   color: var(--text-light);
 }
 
-.request-instance-item.is-active .instance-time {
-  color: var(--bg-primary);
+.custom-select {
+  width: 100%;
 }
 
-.empty-instances {
-  text-align: center;
-  padding: 20px 0;
+.action-buttons {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-end;
 }
-.param-row {
-  margin-bottom: 15px; /* 增加行之间的间隔 */
+
+.key-path-container {
+  margin-bottom: var(--spacing-md);
+}
+
+.key-path-container label {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.custom-input {
+  width: 100%;
+}
+
+/* 规则列表区样式 */
+.rules-container {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  margin-top: var(--spacing-lg);
+}
+
+.rule-card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-md);
+  border: 1px solid var(--border-color);
+}
+
+.rule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background-color: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rule-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.delete-btn {
+  padding: 6px;
+}
+
+.rule-body {
+  padding: var(--spacing-md);
+}
+
+.rule-table {
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+}
+
+/* 筛选条件样式 */
+.filters-section {
+  margin-top: var(--spacing-md);
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.add-filter-btn {
+  padding: 6px 12px;
+}
+
+.filters-table {
+  width: 100%;
+}
+
+/* 空状态样式 */
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  min-height: 200px;
+}
+
+.empty-text {
+  color: var(--text-light);
+  text-align: center;
+}
+
+/* 对话框样式 */
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.dialog-table {
+  width: 100%;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
 }
 </style>

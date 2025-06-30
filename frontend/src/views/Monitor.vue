@@ -12,7 +12,7 @@
                 <el-table :data="monitorStore.c2s">
                     <el-table-column v-for="k in monitorStore.columns" :label="k.label" width="180">
                         <template #default="scope">
-                            {{ scope.row.key_values[k.prop] }}
+                            {{ scope.row.key_values[k.prop][0] }}
 
                         </template>
 

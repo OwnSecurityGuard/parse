@@ -13,3 +13,11 @@ export function Pull() {
 export function Start(arg1) {
   return window['go']['biz']['App']['Start'](arg1);
 }
+
+export function Start1() {
+  return window['go']['biz']['App']['Start1']();
+}
+
+export function Start3() {
+  return window['go']['biz']['App']['Start3']();
+}

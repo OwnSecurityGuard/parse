@@ -39,3 +39,11 @@ func (a *App) Start(port int) {
 		log.Errorf(err.Error())
 	}
 }
+
+func (a *App) Start1() *monitor.Rule {
+	return nil
+}
+
+func (a *App) Start3() *monitor.Filter {
+	return nil
+}

@@ -11,7 +11,7 @@ type FileOutput[T Message] struct {
 
 	dir Direction
 
-	recorder Recorder[T]
+	//recorder Recorder[T]
 }
 
 func NewFileOutput[T Message](path string) (*FileOutput[T], error) {
