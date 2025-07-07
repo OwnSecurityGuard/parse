@@ -7,6 +7,7 @@ import { GetColumns, Pull, Start } from '../../wailsjs/go/biz/App'
 //     columns: Array<biz.Column>,
 //     c2s: Array<biz.Msg>
 // }
+let timerId;
 export const useMonitorStore = defineStore('monitor', {
     state: (): {
         columns: Array<biz.Column>,
@@ -28,18 +29,27 @@ export const useMonitorStore = defineStore('monitor', {
         Start() {
             Start(10002).then((resp) => {
                 console.log(resp)
-                Pull().then((resp) => {
 
-                    for (let k in resp) {
-                        if (resp[k].is_client) {
-                            this.c2s.push(resp[k])
-                        } else {
-                            this.s2c.push(resp[k])
+                timerId = setInterval(() => {
+
+
+                    Pull().then((resp) => {
+                        for (let k in resp) {
+                            if (resp[k].is_client) {
+                                this.c2s.push(resp[k])
+                            } else {
+                                this.s2c.push(resp[k])
+                            }
                         }
-                    }
 
-                })
+                    })
+                }, 5000)
+
             })
+        },
+
+        Stop() {
+            clearInterval(timerId)
         },
         Pull() {
             Pull().then((resp) => {

@@ -34,10 +34,12 @@ func (a *App) Pull() (dat []*Msg) {
 
 // todo 增加返回值，有可能失败
 func (a *App) Start(port int) {
+	go func() { // todo 同一时间只能开启一个监控，需要加互斥
+		if err := a.fm.Run("", port); err != nil {
+			log.Errorf(err.Error())
+		}
+	}()
 
-	if err := a.fm.Run("", port); err != nil {
-		log.Errorf(err.Error())
-	}
 }
 
 func (a *App) Start1() *monitor.Rule {

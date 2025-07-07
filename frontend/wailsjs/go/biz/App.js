@@ -6,6 +6,14 @@ export function GetColumns() {
   return window['go']['biz']['App']['GetColumns']();
 }
 
+export function GetFiles() {
+  return window['go']['biz']['App']['GetFiles']();
+}
+
+export function LoadFile(arg1) {
+  return window['go']['biz']['App']['LoadFile'](arg1);
+}
+
 export function Pull() {
   return window['go']['biz']['App']['Pull']();
 }

@@ -1,6 +1,7 @@
 <template>
-    <el-button @click="monitorStore.Start">assad</el-button>
-    <el-button @click="monitorStore.Pull">assad</el-button>
+    <el-button @click="monitorStore.Start">开启监控</el-button>
+     <el-button @click="monitorStore.Stop">停止监控</el-button>
+    <!-- <el-button @click="monitorStore.Pull">assad</el-button> -->
     <el-card class="playback-recorder">
 
 

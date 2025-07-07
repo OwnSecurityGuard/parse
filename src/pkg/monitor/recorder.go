@@ -1,28 +1,45 @@
 package monitor
 
 import (
-	"io"
+	"encoding/gob"
+	"os"
 )
 
 type MessageEncoder[T Message] interface {
-	Encode(writer io.Writer, msg T, dir Direction) error
+	Encode(msg T) error
 }
 
 type MessageDecoder[T Message] interface {
-	Decode(reader io.Reader) (msg T, dir Direction, err error)
+	Decode() (msg T, err error)
 }
 
-//type JSONEncoder[T Message] struct{}
-//
-//func (j *JSONEncoder[T]) Encode(w io.Writer, msg T, dir Direction) error {
-//	data, err := msg.ToJSON()
-//	if err != nil {
-//		return err
-//	}
-//
-//	return json.NewEncoder(w).Encode(data)
-//}
-//
+type JSONCoder[T Message] struct {
+	e *gob.Encoder
+	d *gob.Decoder
+}
+
+func NewJSONCoder[T Message](path string) *JSONCoder[T] {
+	f, _ := os.Open(path)
+	jc := &JSONCoder[T]{}
+	jc.d = gob.NewDecoder(f)
+	return jc
+}
+func (j *JSONCoder[T]) Encode(msg T) error {
+	data, err := msg.ToJSON()
+	if err != nil {
+		return err
+	}
+
+	return j.e.Encode(data)
+}
+func (j *JSONCoder[T]) Decode() (msg T, err error) {
+	var d []byte
+	err = j.d.Decode(&d)
+	msg.FromJSON(d)
+
+	return msg, err
+}
+
 //type JSONDecoder[T Message] struct {
 //	newInstance func() T // 提供新 message 实例的构造函数
 //}

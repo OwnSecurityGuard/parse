@@ -5,6 +5,10 @@ import {monitor} from '../models';
 
 export function GetColumns():Promise<Array<biz.Column>>;
 
+export function GetFiles():Promise<Array<string>>;
+
+export function LoadFile(arg1:string):Promise<void>;
+
 export function Pull():Promise<Array<biz.Msg>>;
 
 export function Start(arg1:number):Promise<void>;

@@ -2,8 +2,10 @@ package biz
 
 import (
 	"context"
+	"fmt"
 	"parse/src/pkg/g01"
 	"parse/src/pkg/monitor"
+	"time"
 )
 
 type App struct {
@@ -19,7 +21,8 @@ func NewApp() *App {
 	ctx := context.Background()
 	a := &App{ctx: ctx}
 	a.out = NewFrontOutput[g01.G01Msg]()
-	a.fm = monitor.NewFlowManager(ctx, &g01.TcpMonitor{}, g01.G01Codec{}, a.out)
+	fo, _ := monitor.NewFileOutput[g01.G01Msg](fmt.Sprintf("D:\\zero-utils\\client\\wails\\parse\\src\\data\\%d.txt", time.Now().Unix()))
+	a.fm = monitor.NewFlowManager(ctx, &g01.TcpMonitor{}, g01.G01Codec{}, []monitor.Output[g01.G01Msg]{a.out, fo}...)
 	return a
 }
 

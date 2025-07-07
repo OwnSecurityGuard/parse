@@ -3,16 +3,11 @@ package monitor
 import (
 	"context"
 	"log"
+	"parse/src/pkg/tmp"
 	"sync"
 )
 
 // Direction 枚举由 codec/output 模块共享
-type Direction int
-
-const (
-	ClientToServer Direction = iota
-	ServerToClient
-)
 
 type Message interface {
 	IsClient() bool
@@ -27,11 +22,11 @@ type Monitor interface {
 }
 
 type Codec[T Message] interface {
-	Parse(ctx context.Context, input <-chan []byte, direction Direction) <-chan T
+	Parse(ctx context.Context, input <-chan []byte, direction tmp.Direction) <-chan T
 }
 
 type Output[T Message] interface {
-	Write(ctx context.Context, msg T, dir Direction) error
+	Write(ctx context.Context, msg T, dir tmp.Direction) error
 	Close() error
 }
 
@@ -58,14 +53,14 @@ func (f *FlowManager[T]) Run(filter string, port int) error {
 		return err
 	}
 
-	c2sParsed := f.c.Parse(f.ctx, c2sRaw, ClientToServer)
-	s2cParsed := f.c.Parse(f.ctx, s2cRaw, ServerToClient)
+	c2sParsed := f.c.Parse(f.ctx, c2sRaw, tmp.ClientToServer)
+	s2cParsed := f.c.Parse(f.ctx, s2cRaw, tmp.ServerToClient)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	go f.dispatch(c2sParsed, ClientToServer, &wg)
-	go f.dispatch(s2cParsed, ServerToClient, &wg)
+	go f.dispatch(c2sParsed, tmp.ClientToServer, &wg)
+	go f.dispatch(s2cParsed, tmp.ServerToClient, &wg)
 
 	wg.Wait()
 
@@ -73,7 +68,7 @@ func (f *FlowManager[T]) Run(filter string, port int) error {
 }
 
 // 分发消息到所有 Output
-func (f *FlowManager[T]) dispatch(in <-chan T, dir Direction, wg *sync.WaitGroup) {
+func (f *FlowManager[T]) dispatch(in <-chan T, dir tmp.Direction, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
 		select {

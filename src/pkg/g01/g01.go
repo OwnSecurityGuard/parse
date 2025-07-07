@@ -8,7 +8,7 @@ import (
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"log"
-	"parse/src/pkg/monitor"
+	"parse/src/pkg/tmp"
 	"time"
 )
 
@@ -104,22 +104,22 @@ func (t *TcpMonitor) MockData() {
 type G01Codec struct {
 }
 
-func (g G01Codec) Parse(ctx context.Context, input <-chan []byte, direction monitor.Direction) <-chan G01Msg {
+func (g G01Codec) Parse(ctx context.Context, input <-chan []byte, direction tmp.Direction) <-chan G01Msg {
 
-	if direction == monitor.ClientToServer {
+	if direction == tmp.ClientToServer {
 		return g.ParseC2S(ctx, input, direction)
 	} else {
 		return g.ParseS2C(ctx, input, direction)
 	}
 
 }
-func (g G01Codec) ParseC2S(ctx context.Context, input <-chan []byte, direction monitor.Direction) <-chan G01Msg {
+func (g G01Codec) ParseC2S(ctx context.Context, input <-chan []byte, direction tmp.Direction) <-chan G01Msg {
 	ch := make(chan G01Msg, 100)
 	go func() {
 		for d := range input {
 			msg := NewG01Msg() //
 			msg.RawData = d
-			msg.IsC = direction == monitor.ClientToServer
+			msg.IsC = direction == tmp.ClientToServer
 			ch <- msg
 		} // todo ctx
 
@@ -127,13 +127,13 @@ func (g G01Codec) ParseC2S(ctx context.Context, input <-chan []byte, direction m
 	return ch
 }
 
-func (g G01Codec) ParseS2C(ctx context.Context, input <-chan []byte, direction monitor.Direction) <-chan G01Msg {
+func (g G01Codec) ParseS2C(ctx context.Context, input <-chan []byte, direction tmp.Direction) <-chan G01Msg {
 	ch := make(chan G01Msg, 100)
 	go func() {
 		for d := range input {
 			msg := NewG01Msg()
 			msg.RawData = d
-			msg.IsC = direction == monitor.ClientToServer
+			msg.IsC = direction == tmp.ClientToServer
 			ch <- msg
 		} // todo ctx
 
@@ -163,10 +163,11 @@ func (g G01Msg) Raw() []byte {
 }
 
 func (g G01Msg) ToJSON() ([]byte, error) {
-	return g.RawData, nil
+	return json.Marshal(g)
+	//return g.RawData, nil
 }
 
 func (g G01Msg) FromJSON(bytes []byte) error {
-	return json.Unmarshal(bytes, g)
+	return json.Unmarshal(bytes, &g)
 
 }

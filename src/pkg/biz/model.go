@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"parse/src/pkg/monitor"
+	tmp1 "parse/src/pkg/tmp"
 	"time"
 )
 
@@ -38,7 +39,7 @@ func NewFrontOutput[T monitor.Message]() *FrontOutput[T] {
 		ch: make(chan T, 100),
 	}
 }
-func (f *FrontOutput[t]) Write(ctx context.Context, msg t, dir monitor.Direction) error {
+func (f *FrontOutput[t]) Write(ctx context.Context, msg t, dir tmp1.Direction) error {
 	f.ch <- msg
 	return nil
 }

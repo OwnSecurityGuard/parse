@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"fmt"
 	"github.com/labstack/gommon/log"
 	"sync"
 )
@@ -25,7 +26,23 @@ type CtxConfig struct {
 	KeyRules map[string][]Rule // key对应的规则,如果没有配置,则默认按原有的数据进行回放即可
 }
 
-func NewCtxStore[T Message](cc *CtxConfig) *CtxStore[T] {
+func NewCtxStore[T Message](path string, cc *CtxConfig) *CtxStore[T] {
+	c := NewJSONCoder[T](path)
+	for {
+		msg, err := c.Decode()
+		if err != nil {
+			log.Error("decode err ")
+			break
+		}
+
+		jsonData, err := msg.ToJSON()
+		if err != nil {
+			log.Error("to json err")
+			break
+		}
+		fmt.Println(jsonData)
+	}
+
 	return &CtxStore[T]{
 
 		index:       0,
