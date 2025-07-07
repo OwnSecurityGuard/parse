@@ -2,23 +2,24 @@ package biz
 
 import (
 	"context"
+	"parse/src/pkg/g01"
 	"parse/src/pkg/monitor"
 )
 
 type App struct {
 	ctx context.Context
 
-	fm *monitor.FlowManager[monitor.G01Msg]
+	fm *monitor.FlowManager[g01.G01Msg]
 
-	out *FrontOutput[monitor.G01Msg]
+	out *FrontOutput[g01.G01Msg]
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	ctx := context.Background()
 	a := &App{ctx: ctx}
-	a.out = NewFrontOutput[monitor.G01Msg]()
-	a.fm = monitor.NewFlowManager(ctx, &monitor.TcpMonitor{}, monitor.G01Codec{}, a.out)
+	a.out = NewFrontOutput[g01.G01Msg]()
+	a.fm = monitor.NewFlowManager(ctx, &g01.TcpMonitor{}, g01.G01Codec{}, a.out)
 	return a
 }
 

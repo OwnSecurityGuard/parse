@@ -1,4 +1,4 @@
-package monitor
+package g01
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"log"
+	"parse/src/pkg/monitor"
 	"time"
 )
 
@@ -24,7 +25,7 @@ func (t *TcpMonitor) Start(ctx context.Context, filterBpf string, port int) (c2s
 
 	for _, dev := range devs {
 		go func(device string, port string) {
-			//t.monitor(device, filterBpf, port)
+			t.monitor(device, "udp", port)
 		}(dev.Name, fmt.Sprintf("%d", port))
 	}
 
@@ -52,9 +53,10 @@ func (t *TcpMonitor) monitor(device string, filterBpf string, port string) {
 		select {
 		case packet := <-packets:
 
-			isClient := packet.TransportLayer().TransportFlow().Dst().String() == port
-			data := packet.Layer(layers.LayerTypeTCP).LayerPayload()
-			if isClient {
+			//isClient := packet.TransportLayer().TransportFlow().Dst().String() == port
+			data := packet.Layer(layers.LayerTypeUDP).LayerPayload()
+			if true {
+				fmt.Println(data)
 				t.c2s <- data
 			} else {
 				t.s2c <- data
@@ -102,22 +104,22 @@ func (t *TcpMonitor) MockData() {
 type G01Codec struct {
 }
 
-func (g G01Codec) Parse(ctx context.Context, input <-chan []byte, direction Direction) <-chan G01Msg {
+func (g G01Codec) Parse(ctx context.Context, input <-chan []byte, direction monitor.Direction) <-chan G01Msg {
 
-	if direction == ClientToServer {
+	if direction == monitor.ClientToServer {
 		return g.ParseC2S(ctx, input, direction)
 	} else {
 		return g.ParseS2C(ctx, input, direction)
 	}
 
 }
-func (g G01Codec) ParseC2S(ctx context.Context, input <-chan []byte, direction Direction) <-chan G01Msg {
+func (g G01Codec) ParseC2S(ctx context.Context, input <-chan []byte, direction monitor.Direction) <-chan G01Msg {
 	ch := make(chan G01Msg, 100)
 	go func() {
 		for d := range input {
 			msg := NewG01Msg() //
 			msg.RawData = d
-			msg.IsC = direction == ClientToServer
+			msg.IsC = direction == monitor.ClientToServer
 			ch <- msg
 		} // todo ctx
 
@@ -125,13 +127,13 @@ func (g G01Codec) ParseC2S(ctx context.Context, input <-chan []byte, direction D
 	return ch
 }
 
-func (g G01Codec) ParseS2C(ctx context.Context, input <-chan []byte, direction Direction) <-chan G01Msg {
+func (g G01Codec) ParseS2C(ctx context.Context, input <-chan []byte, direction monitor.Direction) <-chan G01Msg {
 	ch := make(chan G01Msg, 100)
 	go func() {
 		for d := range input {
 			msg := NewG01Msg()
 			msg.RawData = d
-			msg.IsC = direction == ClientToServer
+			msg.IsC = direction == monitor.ClientToServer
 			ch <- msg
 		} // todo ctx
 

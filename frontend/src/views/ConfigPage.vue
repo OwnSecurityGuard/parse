@@ -266,8 +266,7 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import { useCtxConfigStore } from '../store/ctxConfig';
-import type { monitor } from '../../wailsjs/go/models';
-
+ 
 const ctxConfigStore = useCtxConfigStore();
 const ruleDialogVisible = ref(false);
 const newRule = ref ({ SrcPath: '', DstKey: '', DstPath: '', Fs: [] });

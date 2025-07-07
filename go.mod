@@ -1,20 +1,26 @@
 module parse
 
-go 1.22.0
+go 1.23
 
-toolchain go1.22.9
+toolchain go1.23.9
 
 require (
 	github.com/google/gopacket v1.1.19
+	github.com/jhump/protoreflect v1.17.0
 	github.com/labstack/gommon v0.4.2
+	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/tidwall/gjson v1.14.2
+	github.com/tidwall/sjson v1.2.5
+	github.com/tree-sitter/go-tree-sitter v0.25.0
 	github.com/wailsapp/wails/v2 v2.10.1
 )
 
 require (
 	github.com/bep/debounce v1.2.1 // indirect
+	github.com/bufbuild/protocompile v0.14.1 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jchv/go-winloader v0.0.0-20210711035445-715c2860da7e // indirect
 	github.com/labstack/echo/v4 v4.13.3 // indirect
@@ -24,6 +30,7 @@ require (
 	github.com/leaanthony/u v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-pointer v0.0.1 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -31,14 +38,17 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tkrajina/go-reflector v0.5.8 // indirect
+	github.com/tree-sitter/tree-sitter-c-sharp v0.23.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/wailsapp/go-webview2 v1.0.19 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 )
 
 // replace github.com/wailsapp/wails/v2 v2.10.1 => C:\Users\smallzero\go\pkg\mod

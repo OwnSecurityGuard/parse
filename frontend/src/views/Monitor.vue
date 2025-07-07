@@ -15,26 +15,25 @@
                             {{ scope.row.key_values[k.prop][0] }}
 
                         </template>
-
                     </el-table-column>
-
-
-
                 </el-table>
 
 
             </div>
+             <div class="table-panel">
+                <div class="panel-title">服务端 -> 客户端 </div>
+                <el-table :data="monitorStore.s2c">
+                    <el-table-column v-for="k in monitorStore.columns" :label="k.label" width="180">
+                        <template #default="scope">
+                            {{ scope.row.key_values[k.prop][0] }}
 
-            <!-- 服务端 → 客户端 -->
-            <!-- <div class="table-panel">
-        <div class="panel-title">服务端 → 客户端</div>
-        <el-table :data="monitorStore.c2s">
-          <el-table-column prop="time" label="Date" width="180" />
-          <el-table-column prop="name" label="Name" width="180" />
-          <el-table-column prop="data" label="data" />
+                        </template>
+                    </el-table-column>
+                </el-table>
 
-        </el-table>
-      </div> -->
+
+            </div>
+           
         </div>
 
         <!-- JSON 弹窗查看 -->
